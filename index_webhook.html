@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Worldrift AI - Webhook Proxy</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 10px; }
+    #output, #debug { white-space: pre-wrap; margin-bottom: 1em; min-height: 200px; border: 1px solid #333; padding: 10px; background: #000; }
+    #status { color: #ccc; font-size: 0.9em; margin-top: 10px; }
+    input, button { font-size: 1.1em; padding: 5px; width: 100%; margin-top: 5px; }
+    button { background-color: #0a0; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #0f0; color: black; }
+  </style>
+</head>
+<body>
+  <h2>Worldrift AI - Webhook Proxy</h2>
+  <div id="output">[เชื่อมผ่าน Webhook Proxy... พร้อมแล้ว]</div>
+  <div id="debug" style="color: #f55;"></div>
+  <input id="input" placeholder="พิมพ์คำสั่งของคุณ เช่น เดินเข้าป่า..." />
+  <button onclick="processInput()">ส่งคำสั่ง</button>
+  <div id="status"></div>
+
+  <script>
+    const player = {
+      id: "WR-" + Math.random().toString(36).substring(2, 8).toUpperCase(),
+      energy: 100,
+      emotion: "อยากรู้อยากเห็น",
+      location: "หมู่บ้านต้นน้ำ"
+    };
+
+    const GPT_PROXY_URL = "https://worldrift-proxy.replit.app/api";  // ตัวอย่าง URL (ผมจะสร้างจริงให้คุณในขั้นถัดไป)
+
+    function processInput() {
+      const input = document.getElementById("input").value;
+      const outputBox = document.getElementById("output");
+      const debugBox = document.getElementById("debug");
+
+      if (!input.trim()) return;
+
+      outputBox.innerHTML += `\n> ${input}`;
+      debugBox.innerHTML = "[เรียกใช้งาน Webhook...]";
+
+      fetch(GPT_PROXY_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: "system", content: "คุณคือ AI ดำเนินเรื่องของเกม Worldrift RPG ภาษาไทย" },
+            { role: "user", content: input }
+          ]
+        })
+      })
+      .then(res => {
+        debugBox.innerHTML += `\n[HTTP Status] ${res.status} ${res.statusText}`;
+        return res.text().then(text => {
+          debugBox.innerHTML += `\n[Response Body]\n${text}`;
+          outputBox.innerHTML += `\n${text}`;
+          document.getElementById("input").value = "";
+          updateStatus();
+        });
+      })
+      .catch(err => {
+        debugBox.innerHTML += `\n[FETCH ERROR]\n${err}`;
+        outputBox.innerHTML += `\n[ข้อผิดพลาด: ${err}]`;
+      });
+    }
+
+    function updateStatus() {
+      document.getElementById("status").innerText =
+        `ID: ${player.id} | สถานที่: ${player.location} | พลังงาน: ${player.energy} | อารมณ์: ${player.emotion}`;
+    }
+
+    updateStatus();
+  </script>
+</body>
+</html>
